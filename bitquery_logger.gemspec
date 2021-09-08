@@ -27,8 +27,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_dependency "exception_notification"
-  spec.add_dependency "exception_notification-rake", "~> 0.3.1"
+  # spec.add_dependency "exception_notification"
+  # spec.add_dependency "exception_notification-rake", "~> 0.3.1"
   spec.add_dependency "logstash-logger", "~> 0.26.1"
 
   # For more information and examples about making a new gem, checkout our
