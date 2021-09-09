@@ -1,34 +1,60 @@
 # BitqueryLogger
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/bitquery_logger`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'bitquery_logger'
+gem 'bitquery_logger', git: 'https://github.com/bitquery/bitquery_logger.git', branch: 'main'#, path: '../bitquery_logger'
+gem 'exception_notification'
+gem 'exception_notification-rake', '~> 0.3.1'
 ```
 
 And then execute:
 
     $ bundle install
 
-Or install it yourself as:
+Execute
 
-    $ gem install bitquery_logger
+    $ rails g bitquery_logger:install
+
+to add initializer
+
+And add to `environments/development.rb` and `environments/production.rb`
+
+```ruby
+FLUENTBIT_CONFIG = {
+  host: "127.0.0.1",
+  port: 5170
+}
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+Automatic exception dispatch already works
 
-## Development
+To send message with some level use
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+BitqueryLogger.debug msg
+BitqueryLogger.info msg
+BitqueryLogger.warn msg
+BitqueryLogger.error msg
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+`msg` can be String or Hash
+
+To add to context use:
+
+```ruby
+BitqueryLogger.extra_context hash
+```
+
+To flush buffer use: 
+
+```ruby
+BitqueryLogger.flush
+```
 
 ## Contributing
 
