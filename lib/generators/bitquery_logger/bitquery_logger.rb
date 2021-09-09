@@ -1,4 +1,4 @@
-BitqueryLogger.logger(type: :tcp, host: FLUENTBIT_CONFIG[:host], port: FLUENTBIT_CONFIG[:port])
+BitqueryLogger.init(type: :tcp, host: FLUENTBIT_CONFIG[:host], port: FLUENTBIT_CONFIG[:port])
 
 Rails.application.config.middleware.use ExceptionNotification::Rack,
                                         tcp: {}

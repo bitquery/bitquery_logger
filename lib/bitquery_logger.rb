@@ -42,14 +42,15 @@ module BitqueryLogger
 
   class << self
 
-    def logger args
-      if @logger.present?
-        @logger
-      else
-        @logger = Logger.new(args).logger
-        @context = {}
-      end
+    def init args
 
+      @logger = Logger.new(args).logger
+      @context = {}
+
+    end
+
+    def logger
+      @logger
     end
 
     def context
@@ -74,6 +75,10 @@ module BitqueryLogger
 
     def debug msg
       @logger.debug prepare_data msg
+    end
+
+    def flush
+      @logger.flush
     end
 
     private
@@ -109,9 +114,7 @@ end
 module ExceptionNotifier
 
   class TcpNotifier
-    def initialize(options)
-      ;
-    end
+    def initialize(options) end
 
     def call(exception, options = {})
 
