@@ -61,6 +61,14 @@ module BitqueryLogger
       @context.merge! ctx
     end
 
+    def set_env env
+      @env = env
+    end
+
+    def env
+      @env.presence || {}
+    end
+
     def error msg
       @logger.error prepare_data msg
     end
@@ -85,11 +93,8 @@ module BitqueryLogger
 
     def prepare_data msg
 
-      # env = if (rake_command = options.dig(:data, :rake_command_line))
-      #         { rake_command: rake_command }
-      #       else
-      #         options[:env].slice("env", "SCRIPT_NAME", "QUERY_STRING", "SERVER_PROTOCOL")
-      #       end
+      rack_env = BitqueryLogger.env.select { |k, v| v.is_a?(String) || v == !v }
+      env = ENV.to_hash
 
       message = if msg.is_a? Exception
                   { message: msg.message,
@@ -100,13 +105,32 @@ module BitqueryLogger
 
       message.merge(context: BitqueryLogger.context,
                     server_attributes: {
-                      server_name: SERVER_NAME
+                      'SERVER_NAME' => SERVER_NAME
                     },
-      # env: env,
+                    env: {}.merge(
+                      env,
+                      rack_env,
+                      { 'PROCESS_ID' => $$,
+                        'THREAD_ID' => Thread.current.object_id }
+                    ),
       )
 
     end
 
+  end
+
+  class BitqueryLoggerMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+
+      BitqueryLogger.set_env env
+
+      @app.call(env)
+
+    end
   end
 
 end
@@ -117,9 +141,7 @@ module ExceptionNotifier
     def initialize(options) end
 
     def call(exception, options = {})
-
       BitqueryLogger.error exception
-
     end
 
   end

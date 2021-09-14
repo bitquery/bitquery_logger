@@ -1,8 +1,5 @@
 BitqueryLogger.init(type: :tcp, host: FLUENTBIT_CONFIG[:host], port: FLUENTBIT_CONFIG[:port])
 
-Rails.application.config.middleware.use ExceptionNotification::Rack,
-                                        tcp: {}
-
 ExceptionNotification.configure do |config|
   # Ignore additional exception types.
   # ActiveRecord::RecordNotFound, Mongoid::Errors::DocumentNotFound, AbstractController::ActionNotFound and ActionController::RoutingError are already added.
@@ -20,3 +17,8 @@ ExceptionNotification.configure do |config|
 end
 
 ExceptionNotifier::Rake.configure
+
+Rails.application.config.middleware.use ExceptionNotification::Rack,
+                                        tcp: {}
+
+Rails.application.config.middleware.use BitqueryLogger::BitqueryLoggerMiddleware
