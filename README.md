@@ -20,12 +20,20 @@ Execute
 
 to add initializer
 
-And add to `environments/development.rb` and `environments/production.rb`
+And add to `environments/production.rb` and `environments/staging.rb`
 
 ```ruby
-FLUENTBIT_CONFIG = {
+BITQUERY_LOGGER_CONFIG = {
   host: "127.0.0.1",
   port: 5170
+}
+```
+
+To `environments/development.rb`
+
+```ruby
+BITQUERY_LOGGER_CONFIG = {
+  log_to_console: true
 }
 ```
 

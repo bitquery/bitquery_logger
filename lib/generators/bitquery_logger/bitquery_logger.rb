@@ -1,4 +1,4 @@
-BitqueryLogger.init(type: :tcp, host: FLUENTBIT_CONFIG[:host], port: FLUENTBIT_CONFIG[:port])
+BitqueryLogger.init(type: :tcp, **BITQUERY_LOGGER_CONFIG)
 
 ExceptionNotification.configure do |config|
   # Ignore additional exception types.

@@ -13,9 +13,7 @@ module BitqueryLogger
 
     attr_reader :logger, :context
 
-    def initialize(type:,
-                   host:,
-                   port:)
+    def initialize(**kwargs)
 
       LogStashLogger.configure do |config|
         config.customize_event do |event|
@@ -24,17 +22,13 @@ module BitqueryLogger
         end
       end
 
-      # @logger ||= if !Rails.env.development?
-      #               LogStashLogger.new type: type,
-      #                                  host: host,
-      #                                  port: port
-      #             else
-      #               ::Logger.new(STDOUT)
-      #             end
-
-      @logger ||= LogStashLogger.new type: type,
-                                     host: host,
-                                     port: port
+      if not kwargs[:log_to_console]
+        @logger ||= LogStashLogger.new type: kwargs[:type],
+                                       host: kwargs[:host],
+                                       port: kwargs[:port]
+      else
+        @logger = ::Logger.new(STDOUT)
+      end
 
     end
 
@@ -42,9 +36,9 @@ module BitqueryLogger
 
   class << self
 
-    def init args
+    def init **kwargs
 
-      @logger = Logger.new(args).logger
+      @logger = Logger.new(**kwargs).logger
       @context = {}
 
     end
