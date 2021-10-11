@@ -22,7 +22,7 @@ module BitqueryLogger
         end
       end
 
-      if not kwargs[:log_to_console]
+      if !kwargs[:log_to_console]
         @logger ||= LogStashLogger.new type: kwargs[:type],
                                        host: kwargs[:host],
                                        port: kwargs[:port]
@@ -38,6 +38,7 @@ module BitqueryLogger
 
     def init **kwargs
 
+      @development = !!kwargs[:log_to_console]
       @logger = Logger.new(**kwargs).logger
       @context = {}
 
@@ -64,18 +65,34 @@ module BitqueryLogger
     end
 
     def error msg
+      return if @development
       @logger.error prepare_data msg
     end
 
     def warn msg
+      if @development
+        puts msg
+        return
+      end
+
       @logger.warn prepare_data msg
     end
 
     def info msg
+      if @development
+        puts msg
+        return
+      end
+
       @logger.info prepare_data msg
     end
 
     def debug msg
+      if @development
+        puts msg
+        return
+      end
+
       @logger.debug prepare_data msg
     end
 
