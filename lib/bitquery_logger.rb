@@ -23,9 +23,12 @@ module BitqueryLogger
       end
 
       if !kwargs[:log_to_console]
-        @logger ||= LogStashLogger.new type: kwargs[:type],
-                                       host: kwargs[:host],
-                                       port: kwargs[:port]
+        @logger ||= LogStashLogger.new(
+          type: :multi_delegator,
+          outputs: [{ type: kwargs[:type],
+                      host: kwargs[:host],
+                      port: kwargs[:port] },
+                    { type: :stdout }])
       else
         @logger = ::Logger.new(STDOUT)
       end
@@ -64,36 +67,44 @@ module BitqueryLogger
       @env.presence || {}
     end
 
-    def error msg
+    def set_rake_task_details rake_task_details
+      @rake_task_details = rake_task_details
+    end
+
+    def rake_task_details
+      @rake_task_details.presence
+    end
+
+    def error msg, **extra_context
       return if @development
-      @logger.error prepare_data msg
+      @logger.error prepare_data msg, **extra_context
     end
 
-    def warn msg
+    def warn msg, **extra_context
       if @development
         puts msg
         return
       end
 
-      @logger.warn prepare_data msg
+      @logger.warn prepare_data msg, **extra_ccontext
     end
 
-    def info msg
+    def info msg, **extra_context
       if @development
         puts msg
         return
       end
 
-      @logger.info prepare_data msg
+      @logger.info prepare_data msg, **extra_ccontext
     end
 
-    def debug msg
+    def debug msg, **extra_context
       if @development
         puts msg
         return
       end
 
-      @logger.debug prepare_data msg
+      @logger.debug prepare_data msg, **extra_ccontext
     end
 
     def flush
@@ -102,29 +113,34 @@ module BitqueryLogger
 
     private
 
-    def prepare_data msg
+    def prepare_data msg, **extra_context
 
       rack_env = BitqueryLogger.env.select { |k, v| v.is_a?(String) || v == !v }
       env = ENV.to_hash
 
+      BitqueryLogger.extra_context extra_context
+
       message = if msg.is_a? Exception
                   { message: msg.message,
-                    backtrace: msg.backtrace }
+                    backtrace: msg.backtrace.join("\n")
+                  }
                 else
                   { message: msg }
                 end
 
-      message.merge(context: BitqueryLogger.context,
-                    server_attributes: {
-                      'SERVER_NAME' => SERVER_NAME
-                    },
-                    env: {}.merge(
-                      env,
-                      rack_env,
-                      { 'PROCESS_ID' => $$,
-                        'THREAD_ID' => Thread.current.object_id }
-                    ),
+      message.merge!(context: BitqueryLogger.context,
+                     server_attributes: {
+                       'SERVER_NAME' => SERVER_NAME
+                     },
+                     env: {}.merge(
+                       env,
+                       rack_env,
+                       { 'PROCESS_ID' => $$,
+                         'THREAD_ID' => Thread.current.object_id }
+                     ),
       )
+
+      message.merge!(rake: rake_task_details) if rake_task_details.present?
 
     end
 
