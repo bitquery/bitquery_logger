@@ -75,36 +75,36 @@ module BitqueryLogger
       @rake_task_details.presence
     end
 
-    def error msg, **extra_context
+    def error msg, **ctx
       return if @development
-      @logger.error prepare_data msg, **extra_context
+      @logger.error prepare_data msg, **ctx
     end
 
-    def warn msg, **extra_context
+    def warn msg, **ctx
       if @development
         puts msg
         return
       end
 
-      @logger.warn prepare_data msg, **extra_ccontext
+      @logger.warn prepare_data msg, **ctx
     end
 
-    def info msg, **extra_context
+    def info msg, **ctx
       if @development
         puts msg
         return
       end
 
-      @logger.info prepare_data msg, **extra_ccontext
+      @logger.info prepare_data msg, **ctx
     end
 
-    def debug msg, **extra_context
+    def debug msg, **ctx
       if @development
         puts msg
         return
       end
 
-      @logger.debug prepare_data msg, **extra_ccontext
+      @logger.debug prepare_data msg, **ctx
     end
 
     def flush
@@ -113,16 +113,16 @@ module BitqueryLogger
 
     private
 
-    def prepare_data msg, **extra_context
+    def prepare_data msg, **ctx
 
       rack_env = BitqueryLogger.env.select { |k, v| v.is_a?(String) || v == !v }
       env = ENV.to_hash
 
-      BitqueryLogger.extra_context extra_context
+      BitqueryLogger.extra_context ctx
 
       message = if msg.is_a? Exception
                   { message: msg.message,
-                    backtrace: msg.backtrace.join("\n")
+                    backtrace: msg&.backtrace&.join("\n")
                   }
                 else
                   { message: msg }
