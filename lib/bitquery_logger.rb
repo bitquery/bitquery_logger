@@ -24,14 +24,33 @@ module BitqueryLogger
 
       if !kwargs[:log_to_console]
         @logger ||= LogStashLogger.new(
-          type: :multi_delegator,
+          type: :multi_logger,
           outputs: [{ type: kwargs[:type],
                       host: kwargs[:host],
-                      port: kwargs[:port] },
-                    { type: :stdout }])
+                      port: kwargs[:port],
+                      formatter: TcpFormatter },
+                    { type: :stdout,
+                      formatter: ::Logger::Formatter }])
       else
-        @logger = ::Logger.new(STDOUT)
+        @logger ||= LogStashLogger.new(type: :stdout,
+                                       formatter: ::Logger::Formatter)
       end
+
+    end
+
+  end
+
+  class TcpFormatter < ::Logger::Formatter
+
+    def call(severity, time, progname, msg)
+
+      additional_data = {
+        "@timestamp" => format_datetime(time),
+        "severity" => severity,
+        "version" => BitqueryLogger::VERSION
+      }
+
+      BitqueryLogger.prepare_data(msg).merge(additional_data).to_json
 
     end
 
@@ -41,7 +60,7 @@ module BitqueryLogger
 
     def init **kwargs
 
-      @development = !!kwargs[:log_to_console]
+      @log_to_console = !!kwargs[:log_to_console]
       @logger = Logger.new(**kwargs).logger
       @context = {}
 
@@ -76,42 +95,40 @@ module BitqueryLogger
     end
 
     def error msg, **ctx
-      return if @development
-      @logger.error prepare_data msg, **ctx
+
+      BitqueryLogger.extra_context **ctx
+
+      @logger.error msg
+
     end
 
     def warn msg, **ctx
-      if @development
-        puts msg
-        return
-      end
 
-      @logger.warn prepare_data msg, **ctx
+      BitqueryLogger.extra_context **ctx
+
+      @logger.warn msg
+
     end
 
     def info msg, **ctx
-      if @development
-        puts msg
-        return
-      end
 
-      @logger.info prepare_data msg, **ctx
+      BitqueryLogger.extra_context **ctx
+
+      @logger.info msg
+
     end
 
     def debug msg, **ctx
-      if @development
-        puts msg
-        return
-      end
 
-      @logger.debug prepare_data msg, **ctx
+      BitqueryLogger.extra_context **ctx
+
+      @logger.debug msg
+
     end
 
     def flush
       @logger.flush
     end
-
-    private
 
     def prepare_data msg, **ctx
 
@@ -175,3 +192,15 @@ module ExceptionNotifier
 
 end
 
+module LogStashLogger
+
+  class MultiLogger
+
+    def error(progname = nil, &block)
+      @loggers.each do |logger|
+        logger.error(progname, &block) unless logger.formatter.instance_of? ::Logger::Formatter
+      end
+    end
+  end
+
+end
