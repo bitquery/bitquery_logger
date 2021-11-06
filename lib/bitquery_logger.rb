@@ -45,7 +45,7 @@ module BitqueryLogger
     def call(severity, time, progname, msg)
 
       additional_data = {
-        "@timestamp" => format_datetime(time),
+        "@timestamp" => time.strftime('%Y-%m-%dT%H:%M:%S.%L'),
         "severity" => severity,
         "version" => BitqueryLogger::VERSION
       }
