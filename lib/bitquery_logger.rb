@@ -159,6 +159,8 @@ module BitqueryLogger
 
       message.merge!(rake: rake_task_details) if rake_task_details.present?
 
+      message
+
     end
 
   end
