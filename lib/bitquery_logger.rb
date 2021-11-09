@@ -15,7 +15,7 @@ module BitqueryLogger
 
     def initialize(**kwargs)
 
-      LogStashLogger.configure do |config|
+      config = LogStashLogger.configure do |config|
         config.customize_event do |event|
           event.remove("@version")
           event.remove("host")
@@ -28,6 +28,7 @@ module BitqueryLogger
           outputs: [{ type: kwargs[:type],
                       host: kwargs[:host],
                       port: kwargs[:port],
+                      buffer_max_items: kwargs[:buffer_max_items] || 50,
                       formatter: TcpFormatter },
                     { type: :stdout,
                       formatter: ::Logger::Formatter }])
