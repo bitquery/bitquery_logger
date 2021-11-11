@@ -5,6 +5,7 @@
 Add this line to your application's Gemfile:
 
 ```ruby
+# Logger
 gem 'bitquery_logger', git: 'https://github.com/bitquery/bitquery_logger.git', branch: 'main'#, path: '../bitquery_logger'
 gem 'exception_notification'
 gem 'exception_notification-rake', '~> 0.3.1'
@@ -20,20 +21,14 @@ Execute
 
 to add initializer
 
-And add to `environments/production.rb` and `environments/staging.rb`
+And add to `environments/[env].rb`
 
 ```ruby
 BITQUERY_LOGGER_CONFIG = {
   host: "127.0.0.1",
-  port: 5170
-}
-```
-
-To `environments/development.rb`
-
-```ruby
-BITQUERY_LOGGER_CONFIG = {
-  log_to_console: true
+  port: 5170,
+  buffer_max_items: 200,
+  # log_to_console: true,
 }
 ```
 
