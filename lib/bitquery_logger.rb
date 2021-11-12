@@ -23,6 +23,7 @@ module BitqueryLogger
       end
 
       if !kwargs[:log_to_console]
+
         @logger ||= LogStashLogger.new(
           type: :multi_logger,
           outputs: [{ type: kwargs[:type],
@@ -31,10 +32,21 @@ module BitqueryLogger
                       buffer_max_items: kwargs[:buffer_max_items] || 50,
                       formatter: TcpFormatter },
                     { type: :stdout,
-                      formatter: ::Logger::Formatter }])
+                      formatter: ::Logger::Formatter  }])
+
+        # Set tcp logger log_level, default ERROR
+        @logger.loggers[0].level = kwargs[:tcp_log_level] || 3
+        # Set stdout logger log_level, default INFO
+        @logger.loggers[1].level = kwargs[:stdout_log_level] || 1
+
       else
+
         @logger ||= LogStashLogger.new(type: :stdout,
                                        formatter: ::Logger::Formatter)
+
+        # Set stdout logger log_level, default INFO
+        @logger.level = kwargs[:stdout_log_level] || 1
+
       end
 
     end
