@@ -32,7 +32,7 @@ module BitqueryLogger
                       buffer_max_items: kwargs[:buffer_max_items] || 50,
                       formatter: TcpFormatter },
                     { type: :stdout,
-                      formatter: ::Logger::Formatter  }])
+                      formatter: !!kwargs[:format_console_logs] ? ConsoleFormatter : ::Logger::Formatter  }])
 
         # Set tcp logger log_level, default ERROR
         @logger.loggers[0].level = kwargs[:tcp_log_level] || 3
@@ -42,7 +42,7 @@ module BitqueryLogger
       else
 
         @logger ||= LogStashLogger.new(type: :stdout,
-                                       formatter: ::Logger::Formatter)
+                                       formatter: !!kwargs[:format_console_logs] ? ConsoleFormatter : ::Logger::Formatter)
 
         # Set stdout logger log_level, default INFO
         @logger.level = kwargs[:stdout_log_level] || 1
@@ -64,6 +64,34 @@ module BitqueryLogger
       }
 
       BitqueryLogger.prepare_data(msg).merge(additional_data).to_json
+
+    end
+
+  end
+
+  class ConsoleFormatter < ::Logger::Formatter
+
+    def call(severity, time, progname, msg)
+
+      additional_data = {
+        "@timestamp" => time.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+        "severity" => severity,
+        "version" => BitqueryLogger::VERSION
+      }
+
+      message = if msg.is_a? Exception
+                  { message: msg.message,
+                    backtrace: msg&.backtrace&.join("\n")
+                  }
+                else
+                  { message: msg }
+                end
+
+      message.merge! context: BitqueryLogger.context
+
+      message.merge! additional_data
+
+      message.to_s + "\n"
 
     end
 
