@@ -25,9 +25,8 @@ And add to `environments/[env].rb`
 
 ```ruby
 BITQUERY_LOGGER_CONFIG = {
-  host: "127.0.0.1",
-  port: 5170,
-  log_to_console: true,
+  output: :file,
+  log_level: 0
 }
 ```
 
@@ -35,12 +34,14 @@ Possible settings
 
 ```ruby
 BITQUERY_LOGGER_CONFIG = {
+  output: :tcp,
   host: "127.0.0.1",
   port: 5170,
   buffer_max_items: 300,
-  tcp_log_level: 2,
-  stdout_log_level: 0,
-  log_to_console: true,
+  log_level: 2,
+  # output: :stdout
+  # stdout_log_level: 0,
+  # format_stdout: true
 }
 ```
 

@@ -22,7 +22,27 @@ module BitqueryLogger
         end
       end
 
-      if !kwargs[:log_to_console]
+      case kwargs[:output]
+      when :stdout
+
+        @logger ||= LogStashLogger.new(
+          type: :stdout,
+          formatter: !!kwargs[:format_stdout] ? StdoutFormatter : ::Logger::Formatter
+        )
+
+        @logger.level = kwargs[:log_level] || 0
+
+      when :file
+
+        @logger ||= LogStashLogger.new(
+          type: :file,
+          path: "log/elastic_#{Rails.env}.log",
+          formatter: FileFormatter
+        )
+
+        @logger.level = kwargs[:log_level] || 0
+
+      when :tcp
 
         @logger ||= LogStashLogger.new(
           type: :multi_logger,
@@ -32,22 +52,32 @@ module BitqueryLogger
                       buffer_max_items: kwargs[:buffer_max_items] || 50,
                       formatter: TcpFormatter },
                     { type: :stdout,
-                      formatter: !!kwargs[:format_console_logs] ? ConsoleFormatter : ::Logger::Formatter  }])
+                      formatter: !!kwargs[:format_stdout] ? StdoutFormatter : ::Logger::Formatter }])
 
         # Set tcp logger log_level, default ERROR
-        @logger.loggers[0].level = kwargs[:tcp_log_level] || 3
+        @logger.loggers[0].level = kwargs[:log_level] || 0
         # Set stdout logger log_level, default INFO
         @logger.loggers[1].level = kwargs[:stdout_log_level] || 1
 
       else
-
-        @logger ||= LogStashLogger.new(type: :stdout,
-                                       formatter: !!kwargs[:format_console_logs] ? ConsoleFormatter : ::Logger::Formatter)
-
-        # Set stdout logger log_level, default INFO
-        @logger.level = kwargs[:stdout_log_level] || 1
-
+        raise ArgumentError.new 'No output selected'
       end
+
+    end
+
+  end
+
+  class FileFormatter < ::Logger::Formatter
+
+    def call(severity, time, progname, msg)
+
+      additional_data = {
+        "@timestamp" => time.strftime('%Y-%m-%dT%H:%M:%S.%L'),
+        "severity" => severity,
+        "version" => BitqueryLogger::VERSION
+      }
+
+      BitqueryLogger.prepare_data(msg).merge(additional_data).to_json + "\n"
 
     end
 
@@ -69,7 +99,7 @@ module BitqueryLogger
 
   end
 
-  class ConsoleFormatter < ::Logger::Formatter
+  class StdoutFormatter < ::Logger::Formatter
 
     def call(severity, time, progname, msg)
 
@@ -101,7 +131,6 @@ module BitqueryLogger
 
     def init **kwargs
 
-      @log_to_console = !!kwargs[:log_to_console]
       @logger = Logger.new(**kwargs).logger
       @context = {}
 
