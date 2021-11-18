@@ -36,7 +36,7 @@ module BitqueryLogger
 
         @logger ||= LogStashLogger.new(
           type: :file,
-          path: "log/elastic_#{Rails.env}.log",
+          path: kwargs[:path] || "log/elastic_#{Rails.env}.log",
           formatter: FileFormatter
         )
 
