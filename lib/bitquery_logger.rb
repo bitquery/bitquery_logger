@@ -30,7 +30,7 @@ module BitqueryLogger
           formatter: !!kwargs[:format_stdout] ? StdoutFormatter : ::Logger::Formatter
         )
 
-        @logger.level = kwargs[:log_level] || 0
+        @logger.level = kwargs[:stdout_log_level] || 1
 
       when :file
 
@@ -44,7 +44,10 @@ module BitqueryLogger
 
         )
 
-        @logger.level = kwargs[:log_level] || 0
+        # Set file logger log_level, default ERROR
+        @logger.loggers[0].level = kwargs[:log_level] || 0
+        # Set stdout logger log_level, default INFO
+        @logger.loggers[1].level = kwargs[:stdout_log_level] || 1
 
       when :tcp
 
