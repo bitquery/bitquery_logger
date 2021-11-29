@@ -35,9 +35,13 @@ module BitqueryLogger
       when :file
 
         @logger ||= LogStashLogger.new(
-          type: :file,
-          path: kwargs[:path] || "log/elastic_#{Rails.env}.log",
-          formatter: FileFormatter
+          type: :multi_logger,
+          outputs: [{ type: :file,
+                      path: kwargs[:path] || "log/elastic_#{Rails.env}.log",
+                      formatter: FileFormatter },
+                    { type: :stdout,
+                      formatter: !!kwargs[:format_stdout] ? StdoutFormatter : ::Logger::Formatter }]
+
         )
 
         @logger.level = kwargs[:log_level] || 0
@@ -46,7 +50,7 @@ module BitqueryLogger
 
         @logger ||= LogStashLogger.new(
           type: :multi_logger,
-          outputs: [{ type: kwargs[:type],
+          outputs: [{ type: :tcp,
                       host: kwargs[:host],
                       port: kwargs[:port],
                       buffer_max_items: kwargs[:buffer_max_items] || 50,
