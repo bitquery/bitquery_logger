@@ -260,7 +260,7 @@ end
 
 module ExceptionNotifier
 
-  class TcpNotifier
+  class BitqueryNotifier
     def initialize(options) end
 
     def call(exception, options = {})
