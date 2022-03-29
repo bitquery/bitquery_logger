@@ -147,6 +147,10 @@ module BitqueryLogger
       @logger
     end
 
+    def purge_context
+      @context = {}
+    end
+
     def context
       @context
     end
