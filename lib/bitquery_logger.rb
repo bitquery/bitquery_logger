@@ -181,6 +181,11 @@ module BitqueryLogger
 
       @logger.error msg
 
+    rescue => ex
+
+      BitqueryLogger.purge_context
+      BitqueryLogger.error ex
+
     end
 
     def warn msg, **ctx
@@ -188,6 +193,11 @@ module BitqueryLogger
       BitqueryLogger.extra_context **ctx
 
       @logger.warn msg
+
+    rescue => ex
+
+      BitqueryLogger.purge_context
+      BitqueryLogger.error ex
 
     end
 
@@ -197,6 +207,11 @@ module BitqueryLogger
 
       @logger.info msg
 
+    rescue => ex
+
+      BitqueryLogger.purge_context
+      BitqueryLogger.error ex
+
     end
 
     def debug msg, **ctx
@@ -204,6 +219,11 @@ module BitqueryLogger
       BitqueryLogger.extra_context **ctx
 
       @logger.debug msg
+
+    rescue => ex
+
+      BitqueryLogger.purge_context
+      BitqueryLogger.error ex
 
     end
 

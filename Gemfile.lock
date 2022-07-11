@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bitquery_logger (0.3.1)
+    bitquery_logger (0.3.2)
       logstash-logger (~> 0.26.1)
 
 GEM
