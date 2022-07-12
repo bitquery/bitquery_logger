@@ -7,8 +7,6 @@ Add this line to your application's Gemfile:
 ```ruby
 # Logger
 gem 'bitquery_logger', git: 'https://github.com/bitquery/bitquery_logger.git', branch: 'main'#, path: '../bitquery_logger'
-gem 'exception_notification'
-gem 'exception_notification-rake', '~> 0.3.1'
 ```
 
 And then execute:
@@ -34,6 +32,10 @@ Possible settings
 
 ```ruby
 BITQUERY_LOGGER_CONFIG = {
+  # Uncomment to 'disable' logger
+  # output: :stdout,
+  # format_stdout: false,
+  
   output: :tcp,
   host: "127.0.0.1",
   port: 5170,
