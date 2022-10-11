@@ -181,8 +181,8 @@ module BitqueryLogger
       @context
     end
 
-    def extra_context ctx
-      @context.merge! ctx
+    def extra_context ctx = {}, **kw_context
+      @context.merge! ctx.merge kw_context
     end
 
     def set_env env
