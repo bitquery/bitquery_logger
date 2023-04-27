@@ -235,7 +235,7 @@ module BitqueryLogger
 
       m = {}
 
-      m.merge!(rake: rake_task_details) if rake_task_details.present?
+      m.merge!(rake_task_details) if rake_task_details.present?
       m
         .merge!(BitqueryLogger.context.transform_values(&:to_s))
         .merge!(BitqueryLogger.temp_ctx_pop.transform_values(&:to_s))
