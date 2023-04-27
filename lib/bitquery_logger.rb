@@ -129,10 +129,9 @@ module BitqueryLogger
   class << self
 
     def init **kwargs
-
       @logger = Logger.new(**kwargs).logger
       @context = {}
-
+      @tmp_ctx_arr = []
     end
 
     def logger
@@ -141,6 +140,7 @@ module BitqueryLogger
 
     def purge_context
       @context = {}
+      @tmp_ctx_arr = []
     end
 
     def context
@@ -149,6 +149,14 @@ module BitqueryLogger
 
     def extra_context ctx = {}, **kw_context
       @context.merge! ctx.merge kw_context
+    end
+
+    def temp_ctx_push ctx = {}, **kw_context
+      @tmp_ctx_arr.push ctx.merge kw_context
+    end
+
+    def temp_ctx_pop
+      @tmp_ctx_arr.pop
     end
 
     def set_env env
@@ -169,7 +177,7 @@ module BitqueryLogger
 
     def error msg, **ctx
 
-      BitqueryLogger.extra_context **ctx
+      BitqueryLogger.temp_ctx_push **ctx
 
       @logger.error msg
 
@@ -179,7 +187,7 @@ module BitqueryLogger
 
     def warn msg, **ctx
 
-      BitqueryLogger.extra_context **ctx
+      BitqueryLogger.temp_ctx_push **ctx
 
       @logger.warn msg
 
@@ -189,7 +197,7 @@ module BitqueryLogger
 
     def info msg, **ctx
 
-      BitqueryLogger.extra_context **ctx
+      BitqueryLogger.temp_ctx_push **ctx
 
       @logger.info msg
 
@@ -199,7 +207,7 @@ module BitqueryLogger
 
     def debug msg, **ctx
 
-      BitqueryLogger.extra_context **ctx
+      BitqueryLogger.temp_ctx_push **ctx
 
       @logger.debug msg
 
@@ -230,6 +238,7 @@ module BitqueryLogger
       m.merge!(rake: rake_task_details) if rake_task_details.present?
       m
         .merge!(BitqueryLogger.context.transform_values(&:to_s))
+        .merge!(BitqueryLogger.temp_ctx_pop.transform_values(&:to_s))
         .merge!(ctx)
         .merge!(
           {
