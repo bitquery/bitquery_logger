@@ -156,7 +156,7 @@ module BitqueryLogger
     end
 
     def temp_ctx_pop
-      @tmp_ctx_arr.pop
+      @tmp_ctx_arr.pop || {}
     end
 
     def set_env env
@@ -237,8 +237,8 @@ module BitqueryLogger
 
       m.merge!(rake_task_details) if rake_task_details.present?
       m
-        .merge!(BitqueryLogger.context.transform_values(&:to_s))
-        .merge!(BitqueryLogger.temp_ctx_pop.transform_values(&:to_s))
+        .merge!(context.transform_values(&:to_s))
+        .merge!(temp_ctx_pop.transform_values(&:to_s))
         .merge!(ctx)
         .merge!(
           {
