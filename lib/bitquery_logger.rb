@@ -18,7 +18,7 @@ module BitqueryLogger
 
     def initialize(**kwargs)
 
-      config = LogStashLogger.configure do |config|
+      LogStashLogger.configure do |config|
         config.customize_event do |event|
           event.remove("@version")
           event.remove("host")
@@ -35,13 +35,21 @@ module BitqueryLogger
 
         @logger.level = kwargs[:stdout_log_level] || 1
 
+      when :stdout_json
+        @logger ||= LogStashLogger.new(
+          type: :stdout,
+          formatter: JSONFormatter
+        )
+
+        @logger.level = kwargs[:stdout_log_level] || 1
+
       when :file
 
         @logger ||= LogStashLogger.new(
           type: :multi_logger,
           outputs: [{ type: :file,
                       path: kwargs[:path] || "log/elastic_#{Rails.env}.log",
-                      formatter: FileFormatter },
+                      formatter: JSONFormatter },
                     { type: :stdout,
                       formatter: !!kwargs[:format_stdout] ? StdoutFormatter : ::Logger::Formatter }]
 
@@ -100,64 +108,22 @@ module BitqueryLogger
 
   end
 
-  class FileFormatter < ::Logger::Formatter
-
+  class JSONFormatter < ::Logger::Formatter
     def call(severity, time, progname, msg)
-
-      additional_data = {
-        "@timestamp" => time.strftime('%Y-%m-%dT%H:%M:%S.%L'),
-        "severity" => severity,
-        "version" => BitqueryLogger::VERSION
-      }
-
-      BitqueryLogger.prepare_data(msg).merge(additional_data).to_json + "\n"
-
+      BitqueryLogger.prepare_data(severity, time, msg).to_json+ "\n"
     end
-
   end
 
   class TcpFormatter < ::Logger::Formatter
-
     def call(severity, time, progname, msg)
-
-      additional_data = {
-        "@timestamp" => time.strftime('%Y-%m-%dT%H:%M:%S.%L'),
-        "severity" => severity,
-        "version" => BitqueryLogger::VERSION
-      }
-
-      BitqueryLogger.prepare_data(msg).merge(additional_data).to_json
-
+      BitqueryLogger.prepare_data(severity, time, msg).to_json
     end
-
   end
 
   class StdoutFormatter < ::Logger::Formatter
-
     def call(severity, time, progname, msg)
-
-      additional_data = {
-        "@timestamp" => time.strftime('%Y-%m-%dT%H:%M:%S.%L'),
-        "severity" => severity,
-        "version" => BitqueryLogger::VERSION
-      }
-
-      message = if msg.is_a? Exception
-                  { message: msg.message,
-                    backtrace: msg&.backtrace&.join("\n")
-                  }
-                else
-                  { message: msg }
-                end
-
-      message.merge! context: BitqueryLogger.context
-
-      message.merge! additional_data
-
-      message.to_s + "\n"
-
+      BitqueryLogger.prepare_data(severity, time, msg).to_s + "\n"
     end
-
   end
 
   class << self
@@ -245,36 +211,44 @@ module BitqueryLogger
       @logger.flush
     end
 
-    def prepare_data msg, **ctx
+    def prepare_data severity, time, msg, **ctx
+      # rack_env = BitqueryLogger.env.select { |k, v| v.is_a?(String) || v == !v }
+      # env = ENV.to_hash
 
-      rack_env = BitqueryLogger.env.select { |k, v| v.is_a?(String) || v == !v }
-      env = ENV.to_hash
+      # server_attributes: {
+      #   'SERVER_NAME' => SERVER_NAME
+      # },
+      # env: {}.merge(
+      #   env,
+      #   rack_env,
+      #   { 'PROCESS_ID' => $$,
+      #     'THREAD_ID' => Thread.current.object_id }
+      # ),
 
-      BitqueryLogger.extra_context ctx
+      m = {}
 
-      message = if msg.is_a? Exception
-                  { message: msg.message,
-                    backtrace: msg&.backtrace&.join("\n")
-                  }
-                else
-                  { message: msg }
-                end
+      m.merge!(rake: rake_task_details) if rake_task_details.present?
+      m
+        .merge!(BitqueryLogger.context.transform_values(&:to_s))
+        .merge!(ctx)
+        .merge!(
+          {
+            "@lvl" => severity,
+            "@timestamp" => time.utc.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
+            "@version" => BitqueryLogger::VERSION,
+          }
+        )
+        .merge!(
+          if msg.is_a? Exception
+            { :message => msg.message,
+              :backtrace => msg&.backtrace&.join("\n")
+            }
+          else
+            { :message => msg }
+          end
+        )
 
-      message.merge!(context: BitqueryLogger.context,
-                     server_attributes: {
-                       'SERVER_NAME' => SERVER_NAME
-                     },
-                     env: {}.merge(
-                       env,
-                       rack_env,
-                       { 'PROCESS_ID' => $$,
-                         'THREAD_ID' => Thread.current.object_id }
-                     ),
-      )
-
-      message.merge!(rake: rake_task_details) if rake_task_details.present?
-
-      message
+      m
 
     end
 
@@ -286,7 +260,7 @@ module BitqueryLogger
     end
 
     def call(env)
-
+      BitqueryLogger.purge_context
       BitqueryLogger.set_env env
 
       @app.call(env)
@@ -312,7 +286,6 @@ end
 module LogStashLogger
 
   class MultiLogger
-
     def error(progname = nil, &block)
       @loggers.each do |logger|
         logger.error(progname, &block) unless logger.formatter.instance_of? ::Logger::Formatter

@@ -41,8 +41,9 @@ BITQUERY_LOGGER_CONFIG = {
   port: 5170,
   buffer_max_items: 300,
   log_level: 2,
-  # output: :stdout
+  # output: :stdout # :stdout_json, :file
   # stdout_log_level: 0,
+  # 0 - debug, 1 - info, 2 - warn, 3 - error
   # format_stdout: true
 }
 ```
