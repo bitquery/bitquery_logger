@@ -243,8 +243,8 @@ module BitqueryLogger
         .merge!(
           {
             "lvl" => severity,
-            "timestamp" => time.utc.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
-            "version" => BitqueryLogger::VERSION,
+            "@timestamp" => time.utc.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
+            "logger_version" => BitqueryLogger::VERSION,
           }
         )
         .merge!(
