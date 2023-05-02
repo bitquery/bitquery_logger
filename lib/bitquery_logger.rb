@@ -235,25 +235,25 @@ module BitqueryLogger
 
       m = {}
 
-      m.merge!(rake_task_details) if rake_task_details.present?
+      m.merge!(rake_task_details.transform_values(&:to_s)) if rake_task_details.present?
       m
         .merge!(context.transform_values(&:to_s))
         .merge!(temp_ctx_pop.transform_values(&:to_s))
-        .merge!(ctx)
+        .merge!(ctx.transform_values(&:to_s))
         .merge!(
           {
-            "@lvl" => severity,
-            "@timestamp" => time.utc.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
-            "@version" => BitqueryLogger::VERSION,
+            "lvl" => severity,
+            "timestamp" => time.utc.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
+            "version" => BitqueryLogger::VERSION,
           }
         )
         .merge!(
           if msg.is_a? Exception
-            { :message => msg.message,
+            { :message => msg.message.to_s,
               :backtrace => msg&.backtrace&.join("\n")
             }
           else
-            { :message => msg }
+            { :message => msg.to_s }
           end
         )
 
