@@ -110,7 +110,7 @@ module BitqueryLogger
 
   class JSONFormatter < ::Logger::Formatter
     def call(severity, time, progname, msg)
-      BitqueryLogger.prepare_data(severity, time, msg).to_json+ "\n"
+      BitqueryLogger.prepare_data(severity, time, msg).to_json + "\n"
     end
   end
 
@@ -169,6 +169,7 @@ module BitqueryLogger
 
     def set_rake_task_details rake_task_details
       @rake_task_details = rake_task_details
+      @rake_task_details.merge!(task_id: SecureRandom.base36(16))
     end
 
     def rake_task_details
@@ -182,7 +183,7 @@ module BitqueryLogger
       @logger.error msg
 
     rescue => ex
-      p ex
+      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
     end
 
     def warn msg, **ctx
@@ -192,7 +193,7 @@ module BitqueryLogger
       @logger.warn msg
 
     rescue => ex
-      p ex
+      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
     end
 
     def info msg, **ctx
@@ -202,7 +203,7 @@ module BitqueryLogger
       @logger.info msg
 
     rescue => ex
-      p ex
+      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
     end
 
     def debug msg, **ctx
@@ -212,7 +213,7 @@ module BitqueryLogger
       @logger.debug msg
 
     rescue => ex
-      p ex
+      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
     end
 
     def flush
@@ -285,7 +286,7 @@ module ExceptionNotifier
     def initialize(options) end
 
     def call(exception, options = {})
-      BitqueryLogger.error exception
+      BitqueryLogger.error exception, middleware_handled: true
     end
 
   end
