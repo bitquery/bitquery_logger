@@ -293,14 +293,14 @@ module ExceptionNotifier
 
 end
 
-module LogStashLogger
-
-  class MultiLogger
-    def error(progname = nil, &block)
-      @loggers.each do |logger|
-        logger.error(progname, &block) unless logger.formatter.instance_of? ::Logger::Formatter
-      end
-    end
-  end
-
-end
+# module LogStashLogger
+#
+#   class MultiLogger
+#     def error(progname = nil, &block)
+#       @loggers.each do |logger|
+#         logger.error(progname, &block) unless logger.formatter.instance_of? ::Logger::Formatter
+#       end
+#     end
+#   end
+#
+# end
