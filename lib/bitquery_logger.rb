@@ -169,7 +169,7 @@ module BitqueryLogger
 
     def set_rake_task_details rake_task_details
       @rake_task_details = rake_task_details
-      @rake_task_details.merge!(task_id: SecureRandom.base36(16))
+      @rake_task_details.merge!(task_id: SecureRandom.base58(16))
     end
 
     def rake_task_details
