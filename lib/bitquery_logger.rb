@@ -183,7 +183,7 @@ module BitqueryLogger
       @logger.error msg
 
     rescue => ex
-      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
+      @logger.fatal "Error during log, err: " + ex.message
     end
 
     def warn msg, **ctx
@@ -193,7 +193,7 @@ module BitqueryLogger
       @logger.warn msg
 
     rescue => ex
-      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
+      @logger.fatal "Error during log, err: " + ex.message
     end
 
     def info msg, **ctx
@@ -203,7 +203,7 @@ module BitqueryLogger
       @logger.info msg
 
     rescue => ex
-      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
+      @logger.fatal "Error during log, err: " + ex.message
     end
 
     def debug msg, **ctx
@@ -213,7 +213,7 @@ module BitqueryLogger
       @logger.debug msg
 
     rescue => ex
-      @logger.fatal "Error during log, err: " + ex.message, backtrace: ex.backtrace
+      @logger.fatal "Error during log, err: " + ex.message
     end
 
     def flush
