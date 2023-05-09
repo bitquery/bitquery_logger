@@ -221,26 +221,13 @@ module BitqueryLogger
     end
 
     def prepare_data severity, time, msg, **ctx
-      # rack_env = BitqueryLogger.env.select { |k, v| v.is_a?(String) || v == !v }
-      # env = ENV.to_hash
-
-      # server_attributes: {
-      #   'SERVER_NAME' => SERVER_NAME
-      # },
-      # env: {}.merge(
-      #   env,
-      #   rack_env,
-      #   { 'PROCESS_ID' => $$,
-      #     'THREAD_ID' => Thread.current.object_id }
-      # ),
-
       m = {}
 
-      m.merge!(rake_task_details.transform_values(&:to_s)) if rake_task_details.present?
+      m.merge!(rake_task_details.transform_values { |v| to_string(v) }) if rake_task_details.present?
       m
-        .merge!(context.transform_values(&:to_s))
-        .merge!(temp_ctx_pop.transform_values(&:to_s))
-        .merge!(ctx.transform_values(&:to_s))
+        .merge!(context.transform_values { |v| to_string(v) })
+        .merge!(temp_ctx_pop.transform_values { |v| to_string(v) })
+        .merge!(ctx.transform_values { |v| to_string(v) })
         .merge!(
           {
             "lvl" => severity,
@@ -250,16 +237,26 @@ module BitqueryLogger
         )
         .merge!(
           if msg.is_a? Exception
-            { :message => msg.message.to_s,
+            { :message => to_string(msg.message),
               :backtrace => msg&.backtrace&.join("\n")
             }
           else
-            { :message => msg.to_s }
+            { :message => to_string(msg) }
           end
         )
 
       m
 
+    end
+
+    private
+
+    def to_string(data)
+      if data.nil? || data.is_a?(Numeric) || data.is_a?(TrueClass) || data.is_a?(FalseClass)
+        data
+      else
+        data.to_s
+      end
     end
 
   end
