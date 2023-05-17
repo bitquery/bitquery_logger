@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bitquery_logger (0.7.6)
+    bitquery_logger (0.7.7)
       exception_notification (~> 4.5.0)
       exception_notification-rake (~> 0.3.1)
       logstash-logger (~> 0.26.1)

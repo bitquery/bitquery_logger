@@ -35,6 +35,15 @@ module BitqueryLogger
 
         @logger.level = kwargs[:stdout_log_level] || 1
 
+      when :stdout_with_context
+
+        @logger ||= LogStashLogger.new(
+          type: :stdout,
+          formatter: StdoutWithContextFormatter
+        )
+
+        @logger.level = kwargs[:stdout_log_level] || 1
+
       when :stdout_json
         @logger ||= LogStashLogger.new(
           type: :stdout,
@@ -114,9 +123,20 @@ module BitqueryLogger
     end
   end
 
+
   class TcpFormatter < ::Logger::Formatter
     def call(severity, time, progname, msg)
       BitqueryLogger.prepare_data(severity, time, msg).to_json
+    end
+  end
+
+  class StdoutWithContextFormatter < ::Logger::Formatter
+    def call(severity, time, progname, msg)
+      data = BitqueryLogger.prepare_data(severity, time, msg).stringify_keys
+      data.delete('message')
+      data.delete('lvl')
+      data.delete('@timestamp')
+      "t=\"#{time.strftime('%Y-%m-%dT%H:%M:%S.%L')}\" lvl=\"#{severity}\" msg=\"#{msg}\" " + data.map{|arr| "#{arr[0]}=\"#{arr[1]}\"" }.join(' ') + "\n"
     end
   end
 
