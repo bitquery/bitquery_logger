@@ -9,6 +9,7 @@ require "exception_notifier/rake"
 module BitqueryLogger
 
   SERVER_NAME = Socket.gethostbyname(Socket.gethostname).first
+  BACKTRACE_LENGTH = 25
 
   class Error < StandardError; end
 
@@ -123,7 +124,6 @@ module BitqueryLogger
     end
   end
 
-
   class TcpFormatter < ::Logger::Formatter
     def call(severity, time, progname, msg)
       BitqueryLogger.prepare_data(severity, time, msg).to_json
@@ -136,7 +136,7 @@ module BitqueryLogger
       data.delete('message')
       data.delete('lvl')
       data.delete('@timestamp')
-      "t=\"#{time.strftime('%Y-%m-%dT%H:%M:%S.%L')}\" lvl=\"#{severity}\" msg=\"#{msg}\" " + data.map{|arr| "#{arr[0]}=\"#{arr[1]}\"" }.join(' ') + "\n"
+      "t=\"#{time.strftime('%Y-%m-%dT%H:%M:%S.%L')}\" lvl=\"#{severity}\" msg=\"#{msg}\" " + data.map { |arr| "#{arr[0]}=\"#{arr[1]}\"" }.join(' ') + "\n"
     end
   end
 
@@ -258,7 +258,7 @@ module BitqueryLogger
         .merge!(
           if msg.is_a? Exception
             { :message => to_string(msg.message),
-              :backtrace => msg&.backtrace&.join("\n")
+              :backtrace => msg&.backtrace&.slice(0, BACKTRACE_LENGTH)&.join("\n")
             }
           else
             { :message => to_string(msg) }
