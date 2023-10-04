@@ -204,6 +204,8 @@ module BitqueryLogger
 
     rescue => ex
       @logger.fatal "Error during log, err: " + ex.message
+    ensure
+      return nil
     end
 
     def warn msg, **ctx
@@ -214,6 +216,8 @@ module BitqueryLogger
 
     rescue => ex
       @logger.fatal "Error during log, err: " + ex.message
+    ensure
+      return nil
     end
 
     def info msg, **ctx
@@ -224,6 +228,8 @@ module BitqueryLogger
 
     rescue => ex
       @logger.fatal "Error during log, err: " + ex.message
+    ensure
+      return nil
     end
 
     def debug msg, **ctx
@@ -234,6 +240,8 @@ module BitqueryLogger
 
     rescue => ex
       @logger.fatal "Error during log, err: " + ex.message
+    ensure
+      return nil
     end
 
     def flush
