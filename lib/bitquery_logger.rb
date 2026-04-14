@@ -8,7 +8,11 @@ require "exception_notifier/rake"
 
 module BitqueryLogger
 
-  SERVER_NAME = Socket.gethostbyname(Socket.gethostname).first
+  SERVER_NAME = begin
+    Addrinfo.getaddrinfo(Socket.gethostname, nil).first.getnameinfo.first
+  rescue SocketError
+    Socket.gethostname
+  end
   BACKTRACE_LENGTH = 25
 
   class Error < StandardError; end
